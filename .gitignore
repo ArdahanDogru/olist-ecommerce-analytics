@@ -1,0 +1,52 @@
+# dbt
+target/
+dbt_packages/
+dbt_internal_packages/
+logs/
+seeds/
+dbt_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+*.egg-info/
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials (never commit)
+*.json
+!profiles.yml
+*credentials*
+*secret*
+*key*
+package-lock.yml
+
+# BigQuery
+.bigqueryrc
+
+# Environment
+.env
+.env.local
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Data files (if you have local CSVs)
+data/raw/*
+!data/raw/.gitkeep

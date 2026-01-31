@@ -1,0 +1,261 @@
+version: 2
+
+# DATA QUALITY NOTES:
+# - Reviews table: ~30 duplicate review_ids exist in source data
+# - Reviews table: One score with value 0 (filtered in staging)
+# - Review scores stored as STRING type in source (not INT)
+
+sources:
+  - name: olist_raw
+    database: jaffle-shop-483118
+    schema: olist_raw
+    description: "Raw e-commerce data from Brazilian Olist marketplace - Kaggle dataset"
+    
+    tables:
+      - name: orders
+        description: "Core orders table with timestamps and status"
+        columns:
+          - name: order_id
+            description: "Unique identifier for each order"
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: "Links to customers table"
+            tests:
+              - not_null
+
+      - name: customers
+        description: "Customer information including location"
+        columns:
+          - name: customer_id
+            description: "Order-level customer identifier"
+            tests:
+              - unique
+              - not_null
+          - name: customer_unique_id
+            description: "Actual customer identifier (one person can have multiple customer_ids)"
+            tests:
+              - not_null
+
+      - name: sellers
+        description: "Seller/merchant information and location"
+        columns:
+          - name: seller_id
+            description: "Unique seller identifier"
+            tests:
+              - unique
+              - not_null
+
+      - name: order_items
+        description: "Line items for each order (products sold)"
+        columns:
+          - name: order_id
+            description: "Links to orders table"
+            tests:
+              - not_null
+          - name: order_item_id
+            description: "Item sequence within order"
+            tests:
+              - not_null
+          - name: product_id
+            description: "Links to products table"
+            tests:
+              - not_null
+          - name: seller_id
+            description: "Which seller fulfilled this item"
+            tests:
+              - not_null
+
+      - name: order_payments
+        description: "Payment information for orders"
+        columns:
+          - name: order_id
+            description: "Links to orders table"
+            tests:
+              - not_null
+          - name: payment_sequential
+            description: "Payment sequence (some orders have multiple payments)"
+            tests:
+              - not_null
+
+      - name: reviews
+        description: "Customer reviews and ratings"
+        columns:
+          - name: review_id
+            description: "Unique review identifier"
+            tests:
+              # - unique  # Source has duplicates, documented limitation
+              - not_null
+          - name: order_id
+            description: "Links to orders table"
+            tests:
+              - not_null
+
+      - name: products
+        description: "Product catalog with dimensions and categories"
+        columns:
+          - name: product_id
+            description: "Unique product identifier"
+            tests:
+              - unique
+              - not_null
+
+      - name: geolocation
+        description: "Zip code to lat/long mapping"
+        columns:
+          - name: geolocation_zip_code_prefix
+            description: "First 5 digits of Brazilian zip code"
+            tests:
+              - not_null
+
+      - name: product_category_name_translation
+        description: "Portuguese to English category name translation"
+        columns:
+          - name: product_category_name
+            description: "Category name in Portuguese"
+            tests:
+              - unique
+              - not_null
+
+
+models:
+  - name: stg_olist__orders
+    description: "Cleaned and standardized orders with timestamp parsing"
+    columns:
+      - name: order_id
+        description: "Unique order identifier"
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Links to customers"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__customers')
+                field: customer_id
+      - name: ordered_at
+        description: "When order was placed (timestamp)"
+        tests:
+          - not_null
+      - name: order_status
+        description: "Order status (delivered, shipped, etc.)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments: 
+                values: ['delivered', 'shipped', 'processing', 'canceled', 'unavailable', 'invoiced', 'created', 'approved']
+
+  - name: stg_olist__customers
+    description: "Customer information with location data"
+    columns:
+      - name: customer_id
+        description: "Order-level customer identifier"
+        tests:
+          - unique
+          - not_null
+      - name: customer_unique_id
+        description: "Actual customer (for lifetime analysis)"
+        tests:
+          - not_null
+
+  - name: stg_olist__sellers
+    description: "Seller/merchant information"
+    columns:
+      - name: seller_id
+        description: "Unique seller identifier"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_olist__order_items
+    description: "Order line items with pricing"
+    columns:
+      - name: order_id
+        description: "Links to orders"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__orders')
+                field: order_id
+      - name: product_id
+        description: "Links to products"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist__products')
+                field: product_id
+      - name: seller_id
+        description: "Links to sellers"
+        tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_olist__sellers')
+                field: seller_id
+
+  - name: stg_olist__order_payments
+    description: "Payment details for orders"
+    columns:
+      - name: order_id
+        description: "Links to orders"
+        tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_olist__orders')
+                field: order_id
+
+  - name: stg_olist__reviews
+    description: "Customer reviews and ratings"
+    columns:
+      - name: review_id
+        description: "Unique review identifier"
+        tests:
+          # - unique Source has duplicates, documented limitation
+          - not_null
+      - name: order_id
+        description: "Links to orders"
+        tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_olist__orders')
+                field: order_id
+      - name: review_score
+        description: "Rating from 1-5"
+        tests:
+          - not_null
+          #- accepted_values:
+          #    arguments: 
+          #      values: [1, 2, 3, 4, 5]
+
+  - name: stg_olist__products
+    description: "Product catalog with dimensions"
+    columns:
+      - name: product_id
+        description: "Unique product identifier"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_olist__geolocation
+    description: "Zip code to coordinate mapping"
+    columns:
+      - name: geolocation_zip_code_prefix
+        description: "First 5 digits of zip code"
+        tests:
+          - not_null
+
+  - name: stg_olist__product_category_name_translation
+    description: "Category name translations"
+    columns:
+      - name: product_category_name
+        description: "Portuguese category name"
+        tests:
+          - unique
+          - not_null
