@@ -76,3 +76,107 @@ models:
       
       - name: avg_monthly_orders
         description: Average orders per active month (total_orders / active_months)
+  - name: fct_customer_cohorts
+    description: |
+      Customer cohort analysis tracking first-order delivery experience and lifetime behavior.
+      
+      **Data Period:** Jan 2017 - May 2018 cohorts (customers with 3+ months to show repeat behavior)
+      
+      **Key Findings:**
+      - Overall repeat purchase rate: 3.6%
+      - On-time first delivery: 3.64% repeat rate
+      - Delayed first delivery (>3 days): 2.80% repeat rate
+      - **23% reduction in repeat purchases from delivery delays**
+      
+      **Business Impact:** 
+      Even though 95% of deliveries are on-time, the 5% with delays show significantly 
+      worse customer retention. First-order experience is critical for building repeat customers.
+      
+      **Use Cases:**
+      - Customer lifetime value analysis
+      - Delivery performance impact studies
+      - Cohort retention tracking
+      - Marketing segmentation (repeat vs one-time buyers)
+    
+    columns:
+      - name: customer_unique_id
+        description: Unique customer identifier (consistent across multiple orders)
+        tests:
+          - not_null
+          - unique
+      
+      - name: first_order_at
+        description: Timestamp of customer's first order on platform
+        tests:
+          - not_null
+      
+      - name: cohort_month
+        description: Month customer first ordered (for cohort analysis)
+        tests:
+          - not_null
+      
+      - name: first_order_id
+        description: Order ID of customer's first purchase
+        tests:
+          - not_null
+      
+      - name: first_order_delivered_on_time
+        description: |
+          Binary flag for first order delivery performance:
+          - 1 = Delivered within 3 days of estimate (on-time)
+          - 0 = Delivered >3 days after estimate (delayed)
+          
+          Used to calculate 23% reduction in repeat purchases from delays.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['0', '1']
+      
+      - name: first_order_delivery_delay_days
+        description: |
+          Days between estimated and actual delivery on first order.
+          Negative values = early delivery (merchant over-estimated)
+          Positive values = late delivery
+      
+      - name: customer_state
+        description: Brazilian state where customer is located (2-letter code)
+        tests:
+          - not_null
+      
+      - name: customer_city
+        description: City where customer is located
+      
+      - name: active_months
+        description: Number of distinct months customer placed at least one order
+        tests:
+          - not_null
+      
+      - name: total_revenue
+        description: Lifetime revenue from customer (sum of all order payments)
+      
+      - name: total_orders
+        description: Total number of orders placed by customer
+        tests:
+          - not_null
+      
+      - name: is_repeat_customer
+        description: |
+          Binary flag indicating repeat purchase behavior:
+          - 1 = Customer placed 2+ orders (repeat customer)
+          - 0 = Customer placed only 1 order (one-time buyer)
+          
+          Overall repeat rate: ~3.6%
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['0', '1']
+      
+      - name: avg_order_value
+        description: Average order value (total_revenue / total_orders)
+      
+      - name: months_since_first_order
+        description: |
+          Months between first order and dataset end (Aug 2018).
+          Used to identify how long customers have been in the cohort.
