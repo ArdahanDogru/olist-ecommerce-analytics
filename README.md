@@ -15,3 +15,12 @@ Portfolio project demonstrating production-grade analytics engineering: dimensio
 - **Analysis:** Python (pandas, plotly, matplotlib, scipy)
 - **Version Control:** Git/GitHub
 - **Environment:** Conda
+
+## 📊 Current Status
+
+✅ **Staging Layer:** 9 clean, tested source models
+✅ **EDA Notebook:** Key findings validated (50% merchant churn, 24% delivery impact)
+✅ **Dimensional Marts:** 
+  - `fct_merchant_performance` - Cohort retention tracking (COMPLETE)
+  - `fct_customer_cohorts` - Coming soon
+  - `fct_delivery_impact` - Coming soon
