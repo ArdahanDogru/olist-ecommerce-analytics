@@ -180,3 +180,132 @@ models:
         description: |
           Months between first order and dataset end (Aug 2018).
           Used to identify how long customers have been in the cohort.
+  - name: fct_delivery_impact
+    description: |
+      Order-level delivery performance analysis tracking merchant fulfillment quality and customer experience.
+      
+      **Data Period:** Jan 2017 - Aug 2018 (delivered orders only)
+      
+      **Key Metrics:**
+      - 95% of deliveries within acceptable range (≤3 days delay)
+      - 5% experience significant delays (>3 days)
+      - Average delivery delay: varies by merchant and geography
+      
+      **Use Cases:**
+      - Identify problematic merchants with chronic delays
+      - Analyze geographic delivery performance patterns
+      - Track same-state vs cross-state fulfillment efficiency
+      - Correlate delivery performance with customer retention
+    
+    columns:
+      - name: order_id
+        description: Unique order identifier
+        tests:
+          - not_null
+          - unique
+      
+      - name: customer_unique_id
+        description: Unique customer identifier (consistent across orders)
+        tests:
+          - not_null
+      
+      - name: seller_id
+        description: Merchant who fulfilled this order
+        tests:
+          - not_null
+      
+      - name: ordered_at
+        description: Timestamp when order was placed
+        tests:
+          - not_null
+      
+      - name: delivered_to_customer_at
+        description: Actual delivery timestamp
+        tests:
+          - not_null
+      
+      - name: estimated_delivery_at
+        description: Promised delivery date provided at order time
+        tests:
+          - not_null
+      
+      - name: delivery_delay_days
+        description: |
+          Days between actual and estimated delivery.
+          Negative = early delivery, Positive = late delivery
+      
+      - name: delivery_on_time
+        description: |
+          Binary flag for acceptable delivery performance:
+          - '1' = Delivered within 3 days of estimate (on-time)
+          - '0' = Delivered >3 days after estimate (delayed)
+        tests:
+          - not_null
+          - accepted_values:
+              arguments: 
+                values: ['0', '1']
+      
+      - name: delivery_status
+        description: |
+          Categorical delivery performance:
+          - 'Early': Delivered >7 days early
+          - 'On-Time': Within acceptable range (-7 to +3 days)
+          - 'Slightly Late': Minor delay (3-10 days)
+          - 'Very Late': Major delay (>10 days)
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Early', 'On Time', 'Slightly Late', 'Very Late']
+      
+      - name: customer_state
+        description: Brazilian state where customer is located
+        tests:
+          - not_null
+      
+      - name: customer_city
+        description: City where customer is located
+      
+      - name: seller_state
+        description: Brazilian state where merchant is located
+        tests:
+          - not_null
+      
+      - name: seller_city
+        description: City where merchant is located
+      
+      - name: same_state
+        description: |
+          Binary flag indicating if customer and seller in same state:
+          - '1' = Same state (local fulfillment)
+          - '0' = Different states (cross-state shipping)
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['0', '1']
+      
+      - name: order_value
+        description: Total payment amount for this order
+      
+      - name: num_items
+        description: Number of items in this order
+        tests:
+          - not_null
+      
+      - name: product_category
+        description: |
+          Product category (English) for single-item orders.
+          NULL for multi-item orders with mixed categories.
+      
+      - name: order_year
+        description: Year order was placed (for time-series analysis)
+      
+      - name: order_month
+        description: Month order was placed (for seasonality analysis)
+      
+      - name: order_quarter
+        description: Quarter order was placed (for quarterly reporting)
+      
+      - name: day_of_week
+        description: Day of week order was placed (1=Sunday, 7=Saturday)
