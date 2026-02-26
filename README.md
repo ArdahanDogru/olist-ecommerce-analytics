@@ -13,12 +13,12 @@ of customer churn over pricing and product selection.
 This project builds a complete analytics pipeline from raw data to product 
 recommendations:
 
-1. **Data Modeling** — 3 dimensional mart models in dbt (merchant retention, 
+1. **Data Modeling**: 3 dimensional mart models in dbt (merchant retention, 
    customer cohorts, delivery impact) transforming 8 raw tables with comprehensive 
    testing
-2. **Analysis** — Cohort analysis, statistical testing, and geographic risk 
+2. **Analysis**: Cohort analysis, statistical testing, and geographic risk 
    assessment across 3K merchants and 75K customers
-3. **Recommendations** — 3 data-backed product recommendations: delivery-first 
+3. **Recommendations**: 3 data-backed product recommendations: delivery-first 
    merchant onboarding, corridor-specific logistics optimization, and a merchant 
    delivery health score
 
